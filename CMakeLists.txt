@@ -10,36 +10,23 @@ project(PreparePngs)
 
 add_executable(${CMAKE_PROJECT_NAME} main.cpp)
 
-find_program(XXD_EXECUTABLE NAMES xxd xxd.ex)
+project(xxd LANGUAGES C CXX)
 
-if(NOT XXD_EXECUTABLE)
-    message(STATUS "xxd not found, fetching and building xxd...")
+file(GLOB XXD_SOURCES
+    "submodules/xxd/src/*.c"
+)
 
-    include(FetchContent)
+add_executable(xxd ${XXD_SOURCES})
 
-    FetchContent_Declare(
-        xxd
-        GIT_REPOSITORY https://github.com/ckormanyos/xxd.git
-        GIT_TAG main
-    )
-
-    FetchContent_MakeAvailable(xxd)
-
-    #set_target_properties(xxd PROPERTIES
-    #    POST_BUILD_COMMAND ""
-    #)
-
-    #set_target_properties(xxd PROPERTIES
-    #    RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}
-    #)
-
-else()
-    message(STATUS "xxd found at ${XXD_EXECUTABLE}")
-endif()
+add_custom_command(
+    TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:xxd> ${PROJECT_SOURCE_DIR}/
+    COMMENT "Copy executable to project dir"
+)
 
 
-#add_custom_command(
-#    TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
-#    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${CMAKE_PROJECT_NAME}> ${PROJECT_SOURCE_DIR}/
-#    COMMENT "Copy executable to project dir"
-#)
+add_custom_command(
+    TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:PreparePngs> ${PROJECT_SOURCE_DIR}/
+    COMMENT "Copy executable to project dir"
+)
