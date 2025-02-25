@@ -7,7 +7,7 @@ Simple application that converts pngs into byte arrays and sets up some files fo
 Don't forget the submodules
 ```bash
 git clone --recurse-submodules git@github.com:Mozzarella32/PreparePngs.git
-cd MyWxWidgets
+cd PreparePngs
 ```
 
 ## Building
