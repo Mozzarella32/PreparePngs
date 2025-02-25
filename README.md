@@ -6,7 +6,7 @@ Simple application that converts pngs into byte arrays and sets up some files fo
 ## Downloading 
 Don't forget the submodules
 ```bash
-git clone --recurse-submodules git@github.com:Mozzarella32/PreparePngs.git.git
+git clone --recurse-submodules git@github.com:Mozzarella32/PreparePngs.git
 cd PreparePngs
 ```
 
