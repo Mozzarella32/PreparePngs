@@ -21,7 +21,7 @@ add_executable(xxd ${XXD_SOURCES})
 add_custom_command(
     TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:xxd> ${PROJECT_SOURCE_DIR}/
-    COMMENT "Copy executable to project dir"
+    COMMENT "Copy xxd executable to project dir"
 )
 
 
