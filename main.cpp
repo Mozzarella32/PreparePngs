@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 	for (auto de : std::filesystem::directory_iterator(std::filesystem::path("Source"))) {
 		if (de.is_regular_file()) {
 
-			std::filesystem::path Destination("PngHeaders/" + de.path().stem().string() + ".h");
+			std::filesystem::path Destination("PngHeaders/" + de.path().stem().string() + ".hpp");
 
 			if (!std::filesystem::exists(Destination.parent_path())) {
 				std::filesystem::create_directories(Destination.parent_path());
@@ -96,12 +96,12 @@ int main(int argc, char* argv[]) {
 			of << str;
 		}
 	}
-	std::cout << "Writing Png_X_List.h\n";
+	std::cout << "Writing Png_X_List.hpp\n";
 
 	std::stringstream Ss;
 	Ss << R"----(#pragma once
 
-#include "pch.h"
+#include "pch.hpp"
 
 #define XList_Png_Images \
 )----";
@@ -113,48 +113,48 @@ int main(int argc, char* argv[]) {
 	std::string NewPngXLists = Ss.str();
 
 	Ss = std::stringstream();
-	if (std::filesystem::exists("Png_X_List.h")) {
-		std::ifstream I("Png_X_Lists.h");
+	if (std::filesystem::exists("Png_X_List.hpp")) {
+		std::ifstream I("Png_X_Lists.hpp");
 		Ss << I.rdbuf();
 		std::string OldPngXLists = Ss.str();
 		if (NewPngXLists != OldPngXLists) {
-			std::ofstream O("Png_X_List.h");
+			std::ofstream O("Png_X_List.hpp");
 			O << NewPngXLists;
 		}
 		Ss = std::stringstream();
 	}
 	else {
-		std::ofstream O("Png_X_List.h");
+		std::ofstream O("Png_X_List.hpp");
 		O << NewPngXLists;
 	}
 
-	std::cout << "Writing Png_Includes.h\n";
+	std::cout << "Writing Png_Includes.hpp\n";
 
 	Ss << R"---(#pragma once
 
-#include "pch.h"
+#include "pch.hpp"
 
 )---";
 
 	for (const auto& Name : Names) {
-		Ss << "#include \"PngHeaders/" + Name + ".h\"\n";
+		Ss << "#include \"PngHeaders/" + Name + ".hpp\"\n";
 	}
 
 	std::string NewPngIncludes = Ss.str();
 
 	Ss = std::stringstream();
-	if (std::filesystem::exists("Png_Includes.h")) {
-		std::ifstream I("Png_Includes.h");
+	if (std::filesystem::exists("Png_Includes.hpp")) {
+		std::ifstream I("Png_Includes.hpp");
 		Ss << I.rdbuf();
 		std::string OldPngIncludes = Ss.str();
 		if (NewPngIncludes != OldPngIncludes) {
-			std::ofstream O("Png_Includes.h");
+			std::ofstream O("Png_Includes.hpp");
 			O << NewPngIncludes;
 		}
 		Ss = std::stringstream();
 	}
 	else {
-		std::ofstream O("Png_Includes.h");
+		std::ofstream O("Png_Includes.hpp");
 		O << NewPngIncludes;
 	}
 
