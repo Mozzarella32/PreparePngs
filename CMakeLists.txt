@@ -20,13 +20,13 @@ add_executable(xxd ${XXD_SOURCES})
 
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:xxd> ${PROJECT_SOURCE_DIR}/
-    COMMENT "Copy xxd executable to project dir"
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:xxd> ${CMAKE_SOURCE_DIR}/resources/art
+    COMMENT "Copy xxd to art"
 )
 
 
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:PreparePngs> ${PROJECT_SOURCE_DIR}/
-    COMMENT "Copy executable to project dir"
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:PreparePngs> ${CMAKE_SOURCE_DIR}/resources/art
+    COMMENT "Copy PreparePngs to art"
 )
