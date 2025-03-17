@@ -1,4 +1,0 @@
-
-[submodule "submodules/xxd"]
-	path = submodules/xxd
-	url = https://github.com/ckormanyos/xxd

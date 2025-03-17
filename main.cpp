@@ -61,16 +61,35 @@ int main(int argc, char* argv[]) {
 				std::filesystem::create_directories(Destination.parent_path());
 			}
 
-			std::stringstream s;
+			std::filesystem::path Source("Source/" + de.path().filename());
 
-#ifdef _WIN32
-			std::string xxdCommand = "xxd.exe";
-#else 
-			std::string xxdCommand = "xxd";
-#endif 
+			//std::stringstream s;
 
+//#ifdef _WIN32
+//			std::string xxdCommand = "xxd.exe";
+//#else 
+//			std::string xxdCommand = "xxd";
+//#endif 
+			std::ifstream i(Source,std::ios_base::binary);
+			std::ofstream o(Destination);
 
-			s << xxdCommand << " -i \"Source/" << de.path().filename() << "\" > \"" << Destination << "\"";
+			std::string CoreName = de.path().filename();
+
+			o << "static const unsigned char Source_" << CoreName << "_png[] = {\n";
+
+			char byte; 
+
+			if (i.get(byte)) {
+				o << std::hex << (0xFF & byte);
+				while (i.get(byte)) {
+					o << ", " << std::hex << (0xFF & byte);
+				}
+			}
+
+			o << "\;\n";
+			0 << "static const size_t Source_" << CoreName << "_png_len = " << std::filesystem::file_size(Source) << ";\n";
+
+			/*s << xxdCommand << " -i \"Source/" << de.path().filename() << "\" > \"" << Destination << "\"";
 			system(s.str().c_str());
 
 			Names.emplace(de.path().stem().string());
@@ -93,7 +112,7 @@ int main(int argc, char* argv[]) {
 				str.replace(Pos, Search.size(), Replace);
 			}
 			std::ofstream of(Destination);
-			of << str;
+			of << str;*/
 		}
 	}
 	std::cout << "Writing Png_X_List.hpp\n";
