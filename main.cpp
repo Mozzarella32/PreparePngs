@@ -55,13 +55,15 @@ int main(int argc, char* argv[]) {
 	for (auto de : std::filesystem::directory_iterator(std::filesystem::path("Source"))) {
 		if (de.is_regular_file()) {
 
-			std::filesystem::path Destination("PngHeaders/" + de.path().stem().string() + ".hpp");
+			std::filesystem::path Destination("PngHeaders");
+			Destination /= de.path().stem().string() + ".hpp";
 
 			if (!std::filesystem::exists(Destination.parent_path())) {
 				std::filesystem::create_directories(Destination.parent_path());
 			}
 
-			std::filesystem::path Source("Source/" + de.path().filename());
+			std::filesystem::path Source("Source");
+			Source /= de.path().filename();
 
 			//std::stringstream s;
 
@@ -73,21 +75,29 @@ int main(int argc, char* argv[]) {
 			std::ifstream i(Source,std::ios_base::binary);
 			std::ofstream o(Destination);
 
-			std::string CoreName = de.path().filename();
+			std::string CoreName = de.path().filename().stem().string();
 
 			o << "static const unsigned char Source_" << CoreName << "_png[] = {\n";
 
 			char byte; 
 
+			int j = 0;
+
 			if (i.get(byte)) {
-				o << std::hex << (0xFF & byte);
+				o << "\t0x" << std::setw(2) << std::setfill('0') << std::hex << (0xFF & byte);
+				++j;
 				while (i.get(byte)) {
-					o << ", " << std::hex << (0xFF & byte);
+					o << ", ";
+					if (j++ % 16 == 0) {
+						o << "\n\t";
+					}
+					o << "0x" << std::setw(2) << std::setfill('0') << std::hex << (0xFF & byte);
 				}
 			}
 
-			o << "\;\n";
-			0 << "static const size_t Source_" << CoreName << "_png_len = " << std::filesystem::file_size(Source) << ";\n";
+			o << std::dec;
+			o << "\n};\n\n";
+			o << "static const size_t Source_" << CoreName << "_png_len = " << j << ";\n";
 
 			/*s << xxdCommand << " -i \"Source/" << de.path().filename() << "\" > \"" << Destination << "\"";
 			system(s.str().c_str());
