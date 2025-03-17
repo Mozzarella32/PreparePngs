@@ -99,6 +99,8 @@ int main(int argc, char* argv[]) {
 			o << "\n};\n\n";
 			o << "static const size_t Source_" << CoreName << "_png_len = " << j << ";\n";
 
+			Names.emplace(de.path().stem().string());
+
 			/*s << xxdCommand << " -i \"Source/" << de.path().filename() << "\" > \"" << Destination << "\"";
 			system(s.str().c_str());
 
