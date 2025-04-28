@@ -170,6 +170,8 @@ int main(int argc, char* argv[]) {
 		Ss << "#include \"PngHeaders/" + Name + ".hpp\"\n";
 	}
 
+	Ss << "\n";
+	
 	std::string NewPngIncludes = Ss.str();
 
 	Ss = std::stringstream();
