@@ -139,6 +139,8 @@ int main(int argc, char* argv[]) {
 	for (const auto& Name : Names) {
 		Ss << "X(" << Name << ")\\\n";
 	}
+	
+	Ss << "\n";
 
 	std::string NewPngXLists = Ss.str();
 
