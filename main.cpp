@@ -1,10 +1,10 @@
-#include <fstream>
-#include <filesystem>
-#include <string>
 #include <algorithm>
-#include <unordered_set>
-#include <sstream>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <unordered_set>
 
 const std::filesystem::path HashPath = ".hash";
 
@@ -12,188 +12,191 @@ size_t Hash;
 
 bool HasChanged() {
 
-	size_t OldHash = 0;
-	{
-		std::ifstream HashFile(HashPath);
-		if (HashFile) {
-			HashFile >> OldHash;
-		}
-	}
+  size_t OldHash = 0;
+  {
+    std::ifstream HashFile(HashPath);
+    if (HashFile) {
+      HashFile >> OldHash;
+    }
+  }
 
-	std::cout << "Last Hash:    " << OldHash << " read from " << std::filesystem::absolute(HashPath) << "\n";
+  std::cout << "Last Hash:    " << OldHash << " read from "
+            << std::filesystem::absolute(HashPath) << "\n";
 
-	std::cout << "Current Hash: ";
+  std::cout << "Current Hash: ";
 
-	std::stringstream HashString;
-	for (auto de : std::filesystem::directory_iterator(std::filesystem::path("Source"))) {
-		if (de.is_regular_file()) {
-			HashString << de.last_write_time().time_since_epoch().count();
-		}
-	}
+  std::stringstream HashString;
+  for (auto de :
+       std::filesystem::directory_iterator(std::filesystem::path("Source"))) {
+    if (de.is_regular_file()) {
+      HashString << de.last_write_time().time_since_epoch().count();
+    }
+  }
 
-	Hash = std::hash<std::string>{}(HashString.str());
+  Hash = std::hash<std::string>{}(HashString.str());
 
-	std::cout << Hash << "\n";
+  std::cout << Hash << "\n";
 
-	return OldHash != Hash;
+  return OldHash != Hash;
 }
 
-int main(int argc, char* argv[]) {
-	std::filesystem::current_path(std::filesystem::path(argv[0]).parent_path());
+int main(int argc, char *argv[]) {
+  std::filesystem::current_path(std::filesystem::path(argv[0]).parent_path());
 
-	std::cout << "PreprocessPngs:\n";
+  std::cout << "PreprocessPngs:\n";
 
-	if (!HasChanged()) {
-		return 0;
-		std::cout << "All Up To Date\n";
+  if (!HasChanged()) {
+    return 0;
+    std::cout << "All Up To Date\n";
+  }
 
-	}
+  std::unordered_set<std::string> Names;
 
-	std::unordered_set<std::string> Names;
+  for (auto de :
+       std::filesystem::directory_iterator(std::filesystem::path("Source"))) {
+    if (de.is_regular_file()) {
 
-	for (auto de : std::filesystem::directory_iterator(std::filesystem::path("Source"))) {
-		if (de.is_regular_file()) {
+      std::filesystem::path Destination("PngHeaders");
+      Destination /= de.path().stem().string() + ".hpp";
 
-			std::filesystem::path Destination("PngHeaders");
-			Destination /= de.path().stem().string() + ".hpp";
+      if (!std::filesystem::exists(Destination.parent_path())) {
+        std::filesystem::create_directories(Destination.parent_path());
+      }
 
-			if (!std::filesystem::exists(Destination.parent_path())) {
-				std::filesystem::create_directories(Destination.parent_path());
-			}
+      std::filesystem::path Source("Source");
+      Source /= de.path().filename();
 
-			std::filesystem::path Source("Source");
-			Source /= de.path().filename();
+      // std::stringstream s;
 
-			//std::stringstream s;
+      // #ifdef _WIN32
+      //			std::string xxdCommand = "xxd.exe";
+      // #else
+      //			std::string xxdCommand = "xxd";
+      // #endif
+      std::ifstream i(Source, std::ios_base::binary);
+      std::ofstream o(Destination);
 
-//#ifdef _WIN32
-//			std::string xxdCommand = "xxd.exe";
-//#else 
-//			std::string xxdCommand = "xxd";
-//#endif 
-			std::ifstream i(Source,std::ios_base::binary);
-			std::ofstream o(Destination);
+      std::string CoreName = de.path().filename().stem().string();
 
-			std::string CoreName = de.path().filename().stem().string();
+      o << "static const unsigned char Source_" << CoreName << "_png[] = {\n";
 
-			o << "static const unsigned char Source_" << CoreName << "_png[] = {\n";
+      char byte;
 
-			char byte; 
+      int j = 0;
 
-			int j = 0;
+      if (i.get(byte)) {
+        o << "\t0x" << std::setw(2) << std::setfill('0') << std::hex
+          << (0xFF & byte);
+        ++j;
+        while (i.get(byte)) {
+          o << ", ";
+          if (j++ % 16 == 0) {
+            o << "\n\t";
+          }
+          o << "0x" << std::setw(2) << std::setfill('0') << std::hex
+            << (0xFF & byte);
+        }
+      }
 
-			if (i.get(byte)) {
-				o << "\t0x" << std::setw(2) << std::setfill('0') << std::hex << (0xFF & byte);
-				++j;
-				while (i.get(byte)) {
-					o << ", ";
-					if (j++ % 16 == 0) {
-						o << "\n\t";
-					}
-					o << "0x" << std::setw(2) << std::setfill('0') << std::hex << (0xFF & byte);
-				}
-			}
+      o << std::dec;
+      o << "\n};\n\n";
+      o << "static const size_t Source_" << CoreName << "_png_len = " << j
+        << ";\n";
 
-			o << std::dec;
-			o << "\n};\n\n";
-			o << "static const size_t Source_" << CoreName << "_png_len = " << j << ";\n";
+      Names.emplace(de.path().stem().string());
 
-			Names.emplace(de.path().stem().string());
+      /*s << xxdCommand << " -i \"Source/" << de.path().filename() << "\" > \""
+      << Destination << "\""; system(s.str().c_str());
 
-			/*s << xxdCommand << " -i \"Source/" << de.path().filename() << "\" > \"" << Destination << "\"";
-			system(s.str().c_str());
+      Names.emplace(de.path().stem().string());
 
-			Names.emplace(de.path().stem().string());
+      std::ifstream i(Destination);
+      s = {};
+      s << i.rdbuf();
+      i.close();
 
-			std::ifstream i(Destination);
-			s = {};
-			s << i.rdbuf();
-			i.close();
+      std::string str = s.str();
 
-			std::string str = s.str();
+      std::string Search = "unsigned char";
+      std::string Replace = "static const unsigned char";
+      if (size_t Pos = str.find(Search, 0); Pos != std::string::npos) {
+              str.replace(Pos, Search.size(), Replace);
+      }
+      Search = "unsigned int";
+      Replace = "static const size_t";
+      if (size_t Pos = str.find(Search, 0); Pos != std::string::npos) {
+              str.replace(Pos, Search.size(), Replace);
+      }
+      std::ofstream of(Destination);
+      of << str;*/
+    }
+  }
+  std::cout << "Writing Png_X_List.hpp\n";
 
-			std::string Search = "unsigned char";
-			std::string Replace = "static const unsigned char";
-			if (size_t Pos = str.find(Search, 0); Pos != std::string::npos) {
-				str.replace(Pos, Search.size(), Replace);
-			}
-			Search = "unsigned int";
-			Replace = "static const size_t";
-			if (size_t Pos = str.find(Search, 0); Pos != std::string::npos) {
-				str.replace(Pos, Search.size(), Replace);
-			}
-			std::ofstream of(Destination);
-			of << str;*/
-		}
-	}
-	std::cout << "Writing Png_X_List.hpp\n";
-
-	std::stringstream Ss;
-	Ss << R"----(#pragma once
+  std::stringstream Ss;
+  Ss << R"----(#pragma once
 
 #include "pch.hpp"
 
 #define XList_Png_Images \
 )----";
 
-	for (const auto& Name : Names) {
-		Ss << "X(" << Name << ")\\\n";
-	}
-	
-	Ss << "\n";
+  for (const auto &Name : Names) {
+    Ss << "X(" << Name << ")\\\n";
+  }
 
-	std::string NewPngXLists = Ss.str();
+  Ss << "\n";
 
-	Ss = std::stringstream();
-	if (std::filesystem::exists("Png_X_List.hpp")) {
-		std::ifstream I("Png_X_Lists.hpp");
-		Ss << I.rdbuf();
-		std::string OldPngXLists = Ss.str();
-		if (NewPngXLists != OldPngXLists) {
-			std::ofstream O("Png_X_List.hpp");
-			O << NewPngXLists;
-		}
-		Ss = std::stringstream();
-	}
-	else {
-		std::ofstream O("Png_X_List.hpp");
-		O << NewPngXLists;
-	}
+  std::string NewPngXLists = Ss.str();
 
-	std::cout << "Writing Png_Includes.hpp\n";
+  Ss = std::stringstream();
+  if (std::filesystem::exists("Png_X_List.hpp")) {
+    std::ifstream I("Png_X_Lists.hpp");
+    Ss << I.rdbuf();
+    std::string OldPngXLists = Ss.str();
+    if (NewPngXLists != OldPngXLists) {
+      std::ofstream O("Png_X_List.hpp");
+      O << NewPngXLists;
+    }
+    Ss = std::stringstream();
+  } else {
+    std::ofstream O("Png_X_List.hpp");
+    O << NewPngXLists;
+  }
 
-	Ss << R"---(#pragma once
+  std::cout << "Writing Png_Includes.hpp\n";
+
+  Ss << R"---(#pragma once
 
 #include "pch.hpp"
 
 )---";
 
-	for (const auto& Name : Names) {
-		Ss << "#include \"PngHeaders/" + Name + ".hpp\"\n";
-	}
+  for (const auto &Name : Names) {
+    Ss << "#include \"PngHeaders/" + Name + ".hpp\"\n";
+  }
 
-	Ss << "\n";
-	
-	std::string NewPngIncludes = Ss.str();
+  Ss << "\n";
 
-	Ss = std::stringstream();
-	if (std::filesystem::exists("Png_Includes.hpp")) {
-		std::ifstream I("Png_Includes.hpp");
-		Ss << I.rdbuf();
-		std::string OldPngIncludes = Ss.str();
-		if (NewPngIncludes != OldPngIncludes) {
-			std::ofstream O("Png_Includes.hpp");
-			O << NewPngIncludes;
-		}
-		Ss = std::stringstream();
-	}
-	else {
-		std::ofstream O("Png_Includes.hpp");
-		O << NewPngIncludes;
-	}
+  std::string NewPngIncludes = Ss.str();
 
-	std::ofstream HashFile(HashPath);
-	HashFile << Hash;
+  Ss = std::stringstream();
+  if (std::filesystem::exists("Png_Includes.hpp")) {
+    std::ifstream I("Png_Includes.hpp");
+    Ss << I.rdbuf();
+    std::string OldPngIncludes = Ss.str();
+    if (NewPngIncludes != OldPngIncludes) {
+      std::ofstream O("Png_Includes.hpp");
+      O << NewPngIncludes;
+    }
+    Ss = std::stringstream();
+  } else {
+    std::ofstream O("Png_Includes.hpp");
+    O << NewPngIncludes;
+  }
 
-	return 0;
+  std::ofstream HashFile(HashPath);
+  HashFile << Hash;
+
+  return 0;
 }
