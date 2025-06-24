@@ -29,7 +29,8 @@ bool HasChanged() {
   for (auto de :
        std::filesystem::directory_iterator(std::filesystem::path("Source"))) {
     if (de.is_regular_file()) {
-      HashString << std::to_string(de.last_write_time().time_since_epoch().count());
+      HashString << static_cast<long long>(
+          de.last_write_time().time_since_epoch().count());
     }
   }
 
