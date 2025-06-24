@@ -3,7 +3,7 @@
 #include <string>
 #include <algorithm>
 #include <unordered_set>
-
+#include <sstream>
 #include <iostream>
 
 const std::filesystem::path HashPath = ".hash";
