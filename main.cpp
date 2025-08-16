@@ -47,8 +47,8 @@ int main([[maybe_unused]]int argc, char *argv[]) {
   std::cout << "PreprocessPngs:\n";
 
   if (!HasChanged()) {
-    return 0;
     std::cout << "All Up To Date\n";
+    return 0;
   }
 
   std::unordered_set<std::string> Names;
