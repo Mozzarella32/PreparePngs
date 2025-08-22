@@ -12,9 +12,3 @@ else()
 endif()
 
 add_executable(${PROJECT_NAME} main.cpp)
-
-add_custom_command(
-    TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:PreparePngs> ${CMAKE_SOURCE_DIR}/resources/art
-    COMMENT "Copy PreparePngs to art"
-)
