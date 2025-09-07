@@ -67,84 +67,50 @@ int main([[maybe_unused]]int argc, char *argv[]) {
 
   std::unordered_set<std::string> Names;
 
+  std::filesystem::remove_all("PngHeaders");
+  std::filesystem::create_directories("PngHeaders");
+
   for (auto de :
        std::filesystem::directory_iterator(std::filesystem::path("Source"))) {
-    if (de.is_regular_file()) {
+    if (!de.is_regular_file()) continue;
 
-      std::filesystem::path Destination("PngHeaders");
-      Destination /= de.path().stem().string() + ".hpp";
+    std::filesystem::path Destination("PngHeaders");
+    Destination /= de.path().stem().string() + ".hpp";
 
-      if (!std::filesystem::exists(Destination.parent_path())) {
-        std::filesystem::create_directories(Destination.parent_path());
-      }
+    std::filesystem::path Source("Source");
+    Source /= de.path().filename();
 
-      std::filesystem::path Source("Source");
-      Source /= de.path().filename();
+    std::ifstream i(Source, std::ios_base::binary);
+    std::ofstream o(Destination);
 
-      // std::stringstream s;
+    std::string CoreName = de.path().filename().stem().string();
 
-      // #ifdef _WIN32
-      //			std::string xxdCommand = "xxd.exe";
-      // #else
-      //			std::string xxdCommand = "xxd";
-      // #endif
-      std::ifstream i(Source, std::ios_base::binary);
-      std::ofstream o(Destination);
+    o << "static const unsigned char Source_" << CoreName << "_png[] = {\n";
 
-      std::string CoreName = de.path().filename().stem().string();
+    char byte;
 
-      o << "static const unsigned char Source_" << CoreName << "_png[] = {\n";
+    int j = 0;
 
-      char byte;
-
-      int j = 0;
-
-      if (i.get(byte)) {
-        o << "\t0x" << std::setw(2) << std::setfill('0') << std::hex
-          << (0xFF & byte);
-        ++j;
-        while (i.get(byte)) {
-          o << ", ";
-          if (j++ % 16 == 0) {
-            o << "\n\t";
-          }
-          o << "0x" << std::setw(2) << std::setfill('0') << std::hex
-            << (0xFF & byte);
+    if (i.get(byte)) {
+      o << "\t0x" << std::setw(2) << std::setfill('0') << std::hex
+        << (0xFF & byte);
+      ++j;
+      while (i.get(byte)) {
+        o << ", ";
+        if (j++ % 16 == 0) {
+          o << "\n\t";
         }
+        o << "0x" << std::setw(2) << std::setfill('0') << std::hex
+          << (0xFF & byte);
       }
-
-      o << std::dec;
-      o << "\n};\n\n";
-      o << "static const size_t Source_" << CoreName << "_png_len = " << j
-        << ";\n";
-
-      Names.emplace(de.path().stem().string());
-
-      /*s << xxdCommand << " -i \"Source/" << de.path().filename() << "\" > \""
-      << Destination << "\""; system(s.str().c_str());
-
-      Names.emplace(de.path().stem().string());
-
-      std::ifstream i(Destination);
-      s = {};
-      s << i.rdbuf();
-      i.close();
-
-      std::string str = s.str();
-
-      std::string Search = "unsigned char";
-      std::string Replace = "static const unsigned char";
-      if (size_t Pos = str.find(Search, 0); Pos != std::string::npos) {
-              str.replace(Pos, Search.size(), Replace);
-      }
-      Search = "unsigned int";
-      Replace = "static const size_t";
-      if (size_t Pos = str.find(Search, 0); Pos != std::string::npos) {
-              str.replace(Pos, Search.size(), Replace);
-      }
-      std::ofstream of(Destination);
-      of << str;*/
     }
+
+    o << std::dec;
+    o << "\n};\n\n";
+    o << "static const size_t Source_" << CoreName << "_png_len = " << j
+      << ";\n";
+
+    Names.emplace(de.path().stem().string());
   }
   std::cout << "Writing Png_X_List.hpp\n";
 
